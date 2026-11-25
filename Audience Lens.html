@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audience Lens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: practical writing coach for a global classroom, plain and friendly — the tool practises what it preaches
+   IDEA: an eye exam for course text: one paragraph read through the lenses of the regions that actually enrol
+   PICTURE: the audience-mix ring (weighted fit) beside four regional lenses, the chosen lens re-marking the text live
+   COLOUR and TYPE: white ground, ink, one colour per region (coral, teal, gold, blue), highlighter marks; Atkinson Hyperlegible throughout
+   LAYOUT: title, mix ring + region weights, four lenses, editor and marked-up reading side by side, fixes below */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#111518);--ink:light-dark(#141414,#ecf0f2);--mute:light-dark(#57606a,#a3adb5);--line:light-dark(#dfe4e8,#2a3238);--panel:light-dark(#f4f6f8,#192026);
+--p0:#e8553d;--p1:#14857c;--p2:#c99400;--p3:#2f6fd6;--hl:light-dark(#fff07a,#6b5d00);--jar:light-dark(#d6e9ff,#1d3a5c);--long:light-dark(#fde9e5,#3b1f1a);--acr:light-dark(#e9e0ff,#33285a);--us:light-dark(#d9f5e6,#173a2a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 "Atkinson Hyperlegible",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,3.5vw,44px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+h1{font:700 clamp(32px,4.4vw,48px)/1.05 inherit;margin:0;text-wrap:balance}
+h2{font-size:22px;line-height:1.2;margin:0 0 8px}
+.lede{color:var(--mute);margin:8px 0 0;max-width:68ch}
+.mix{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(16px,3vw,36px);align-items:center;margin-top:22px;background:var(--panel);border-radius:18px;padding:clamp(16px,2.4vw,26px)}
+.big{width:150px;height:150px}
+.big text{font:700 40px "Atkinson Hyperlegible",sans-serif;fill:var(--ink)}
+.big .s{font-size:12px;fill:var(--mute);font-weight:400}
+.wts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:10px}
+.wts label{font-size:14px;font-weight:700;display:block;margin-bottom:4px}
+.wts input{width:100%;font:16px "Atkinson Hyperlegible",sans-serif;min-height:44px;padding:0 10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}
+.bar{display:flex;height:12px;border-radius:6px;overflow:hidden;margin-top:12px}
+.lenses{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px;padding:0;list-style:none}
+.lens{width:100%;height:100%;text-align:start;display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:16px;border:3px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;cursor:pointer;min-height:44px}
+.lens[aria-pressed=true]{border-color:var(--pc);box-shadow:0 10px 28px rgba(0,0,0,.12)}
+.lens:focus-visible,textarea:focus-visible,.btn:focus-visible,.wts input:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.lt{display:flex;gap:12px;align-items:center}
+.ring{width:70px;height:70px;flex:none}
+.ring text{font:700 21px "Atkinson Hyperlegible",sans-serif;fill:var(--ink)}
+.lens b{display:block;font-size:18px;line-height:1.2}
+.lens span{display:block;font-size:14px;color:var(--mute);line-height:1.4}
+.lens em{font-style:normal;font-weight:700;color:var(--pc);font-size:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:22px}
+.stat{background:var(--panel);border-radius:12px;padding:12px 14px}
+.stat b{display:block;font-size:clamp(22px,3vw,30px);line-height:1.1;white-space:nowrap}
+.stat span{font-size:14px;color:var(--mute)}
+.stat.over b{color:var(--p0)}
+.work{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px);margin-top:22px}
+.work>section>label{font-weight:700;display:block;margin-bottom:6px}
+textarea{width:100%;min-height:360px;font:17px/1.6 "Atkinson Hyperlegible",sans-serif;padding:14px;border:2px solid var(--line);border-radius:12px;background:var(--panel);color:var(--ink);resize:vertical}
+.read{border:2px solid var(--line);border-radius:12px;padding:16px 18px;min-height:360px;border-top:8px solid var(--pc)}
+.read p{margin:0 0 12px}
+mark{background:none;color:inherit;border-radius:3px;padding:0 1px}
+.m-long{background:var(--long);box-shadow:inset 3px 0 0 var(--p0)}
+.m-idiom{background:var(--hl)}
+.m-jar{background:var(--jar)}
+.m-acr{background:var(--acr)}
+.m-us{background:var(--us);outline:1px dashed #1d8a55}
+.m-pas{text-decoration:underline dotted 2px;text-underline-offset:4px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:14px;color:var(--mute);margin-top:10px}
+.legend span{white-space:nowrap}
+.legend mark{padding:0 6px;color:var(--ink)}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;align-items:center}
+.btn{font:700 15px/1 inherit;min-height:44px;padding:0 16px;border-radius:10px;border:2px solid var(--ink);background:var(--ink);color:var(--bg);cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border-color:var(--line)}
+.fixes{margin-top:26px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(16px,2.5vw,32px)}
+.fixes ul{margin:0;padding-inline-start:20px}.fixes li{margin-bottom:8px}
+.who{background:var(--panel);border-radius:14px;padding:16px 18px;border-inline-start:6px solid var(--pc)}
+.who p{margin:0 0 8px}
+.note{font-size:14px;color:var(--mute);margin-top:18px;max-width:90ch}
+.toast{font-size:14px;font-weight:700}
+.read{position:relative}
+.read mark[data-k]{cursor:pointer}
+.read mark[data-k]:hover,.read mark[data-k]:focus-visible{outline:2px solid var(--ink);outline-offset:1px}
+.tip{font-size:14px;color:var(--mute);margin:-4px 0 8px}
+.pop{position:absolute;z-index:5;width:min(320px,calc(100% - 16px));background:var(--bg);color:var(--ink);border:2px solid var(--ink);border-radius:12px;padding:14px;box-shadow:0 14px 34px rgba(0,0,0,.22);font-size:15px;line-height:1.45}
+.pop h3{font-size:16px;margin:0 0 6px}
+.pop p{margin:0 0 10px}
+.pop .fx{display:block;width:100%;text-align:start;margin:0 0 6px;font:700 15px/1.3 inherit;min-height:44px;padding:8px 12px;border-radius:10px;border:2px solid var(--pc);background:var(--panel);color:var(--ink);cursor:pointer}
+.pop .fx:focus-visible,.pop .x:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.pop .x{float:inline-end;border:0;background:none;color:var(--mute);font:700 22px/1 inherit;min-width:44px;min-height:44px;margin:-12px -10px 0 0;cursor:pointer}
+.undo{font:700 14px inherit;min-height:36px;padding:0 12px;border-radius:8px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;margin-inline-start:6px}
+.exs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.ex{font:700 14px/1.2 inherit;min-height:44px;padding:8px 14px;border-radius:99px;border:2px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.ex[aria-pressed=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.ex:focus-visible,.seg button:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:10px;overflow:hidden}
+.seg button{font:700 15px/1 inherit;min-height:40px;padding:0 16px;border:0;background:transparent;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.exhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:8px}
+.exhead span{font-weight:700}
+.exg{flex-basis:100%;font-size:14px;color:var(--mute);margin-top:4px}
+@media(max-width:980px){.lenses{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:860px){.work,.fixes{grid-template-columns:minmax(0,1fr)}.stats,.wts{grid-template-columns:repeat(2,minmax(0,1fr))}textarea,.read{min-height:220px}}
+@media(max-width:560px){.mix{grid-template-columns:minmax(0,1fr);justify-items:center}.mix>div{width:100%}.lenses{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:no-preference){.ring circle.v,.big circle.v{transition:stroke-dashoffset .4s ease}}
+</style>
+</head>
+<body>
+<header class="band" style="padding-bottom:0"><div class="wrap">
+  <h1>Audience Lens</h1>
+  <p class="lede">One paragraph, read by working professionals in four regions. Set your enrollment mix, paste course text, and see where it lands and what gets in the way.</p>
+  <div class="mix">
+    <div id="bigRing"></div>
+    <div>
+      <h2>Your audience mix</h2>
+      <p class="lede" style="margin:0">Share of learners by region. Replace these placeholder numbers with your enrollment data; the ring weights each region's fit score by its share.</p>
+      <div class="wts" id="wts"></div>
+      <div class="bar" id="bar" aria-hidden="true"></div>
+    </div>
+  </div>
+  <ul class="lenses" id="lenses"></ul>
+</div></header>
+
+<main class="band" style="padding-top:0"><div class="wrap">
+  <div class="stats" id="stats"></div>
+  <div class="work">
+    <section>
+      <div class="exhead"><span id="exLbl">Examples</span><div class="seg" role="group" aria-label="Version"><button id="vb" aria-pressed="true">Before</button><button id="va" aria-pressed="false">After</button></div></div>
+      <div class="exs" id="exs" role="group" aria-labelledby="exLbl"></div>
+      <label for="ed">Your course text</label>
+      <textarea id="ed"></textarea>
+      <div class="row">
+        <button class="btn alt" id="clear">Clear</button>
+        <button class="btn" id="quick">Fix quick wins</button>
+        <button class="btn alt" id="copy">Copy review</button>
+        <span class="toast" id="toast" aria-live="polite"></span>
+      </div>
+    </section>
+    <section>
+      <h2 id="readTitle">Through their eyes</h2>
+      <p class="tip">Click any highlight to see a fix.</p>
+      <div class="read" id="read" aria-live="polite"></div>
+      <div class="legend">
+        <span><mark class="m-long">Too long</mark> sentence</span>
+        <span><mark class="m-idiom">Idiom</mark></span>
+        <span><mark class="m-us">Local</mark> reference or date</span>
+        <span><mark class="m-jar">Jargon</mark></span>
+        <span><mark class="m-acr">ROI</mark> cohesion: term not explained before use</span>
+        <span><mark class="m-pas">passive</mark> voice</span>
+      </div>
+    </section>
+  </div>
+  <div class="fixes">
+    <div class="who" id="who"></div>
+    <div><h2>Fix these first</h2><ul id="fixList"></ul></div>
+  </div>
+  <p class="note">The regional lenses describe common reading conditions, not people: individuals in every region vary widely, and many Indian and French professionals read English at work every day. Mix percentages and example texts are placeholders written for this demo. Grade level uses the Flesch-Kincaid formula with an estimated syllable count, so treat scores as a prompt for discussion, not a verdict.</p>
+</div></main>
+
+<script>
+{
+const P=[
+ {r:'India',n:'Working professional in India',d:'Uses English daily at work, often alongside one or more other languages. Fits study around a full workday, often on a phone.',
+  grade:10,maxS:22,idiom:1.5,out:1.5,jar:1,acr:1.2,date:1,w:45,
+  needs:'Literal phrasing over idioms. Examples that don\'t assume US culture, currency or holidays. Dates and money written unambiguously. Short paragraphs that read well on a small screen.'},
+ {r:'United States',n:'Working professional in the US',d:'Reads in their first language, short on time, studying after work. References from other countries can be unfamiliar.',
+  grade:12,maxS:25,idiom:.4,out:1.3,jar:.8,acr:.8,date:1,w:25,
+  needs:'The point in the first sentence. Active voice that says who does what. Less padding, more "what do I do with this on Monday".'},
+ {r:'United Kingdom',n:'Working professional in the UK',d:'Reads in their first language, but US sports idioms and US-only references can still land oddly.',
+  grade:12,maxS:25,idiom:.7,out:1,jar:.8,acr:.8,date:1,w:15,
+  needs:'International examples. Dates written out ("1 December"), since 12/01 reads as 12 January. Consistent spelling, whichever variant the style guide sets.'},
+ {r:'France',n:'Working professional in France',d:'Reads English as an additional language, often confident, sometimes checking terms with a translation tool.',
+  grade:9,maxS:20,idiom:2,out:1.5,jar:1.2,acr:1.5,date:1,w:15,
+  needs:'Sentences that survive machine translation. Each acronym spelled out, since French equivalents differ. One idea per sentence.'}
+];
+P.forEach((p,i)=>p.i=i);
+const COL=['var(--p0)','var(--p1)','var(--p2)','var(--p3)'];
+const IDIOMS=['deep dive','touch base','low-hanging fruit','at the end of the day','circle back','move the needle','on the same page','hit the ground running','game changer','game-changer','piece of cake','bottom line','in a nutshell','think outside the box','under the hood','rule of thumb','nail down','get the hang of','ramp up','boil the ocean','drill down','course-correct','single source of truth','heavy lifting','in the weeds','tip of the iceberg','apples to apples','up to speed','welcome aboard','stoked','seasoned pro','newbie','in no time','dropped the ball','drop the ball','went south','back on track','two cents','shout-out','shout out','taken to heart'];
+const LOCAL=[
+ ['lakh','lakhs','crore','crores','do the needful','prepone','preponed','revert back','kindly revert','revert by','re:₹\\s?\\d(?:[\\d,.]*\\d)?','rupees','Rs\\.','Diwali','Onam','IST','UPI','Flipkart','Paytm'],
+ ['home run','ballpark','touchdown','slam dunk','curveball','curve ball','step up to the plate','out of left field','Monday morning quarterback','full-court press','Hail Mary','Super Bowl','Thanksgiving','Fourth of July','401\\(k\\)','zip code','SAT','Fahrenheit','Black Friday','dime a dozen','Q4 push','knock it out of the park','kickoff','EST','PST','EDT','PDT','CST','CDT','PT','ET','re:\\$\\s?\\d(?:[\\d,.]*\\d)?[KkMm]?'],
+ ['fortnight','full stop','chuffed','knackered','sorted','Bob\'s your uncle','re:£\\s?\\d(?:[\\d,.]*\\d)?[KkMm]?','pounds sterling','Boxing Day','bank holiday','A-levels','NHS','HMRC','Tesco','GMT','BST','whilst'],
+ ['re:€\\s?\\d(?:[\\d,.]*\\d)?[KkMm]?','rentrée','RTT','URSSAF','SNCF','baccalauréat','CAC 40','CET','CEST','re:\\b\\d{1,2}h\\d{2}\\b','Bpifrance']
+];
+const REG=['India','the US','the UK','France'];
+const JARGON=['leverage','leveraging','leveraged','utilize','utilized','utilizing','synergy','operationalize','operationalized','paradigm','holistic','actionable','bandwidth','ecosystem','robust','granular','suboptimal','data hygiene','cleansed','best-in-class','stakeholders','value-add','scalable','streamline','incentivize'];
+const SPELL=[['color','colour'],['organize','organise'],['analyze','analyse'],['center','centre'],['behavior','behaviour'],['optimize','optimise'],['catalog','catalogue'],['program','programme'],['license','licence'],['favorite','favourite']];
+const EX=[
+ {n:'Reading',t:'Research Analyst reading',b:`Before we deep dive into the analysis phase, it's important to touch base on data hygiene. Data that has not been properly cleansed is often utilized by stakeholders to make decisions, which can lead to suboptimal outcomes that are difficult to course-correct once they have been operationalized across the organization. Leveraging ETL pipelines and robust QA processes, analysts can ensure that KPIs are calculated against a single source of truth.
+
+At the end of the day, the low-hanging fruit is removing duplicates. Missing values were handled differently by each team, so the numbers didn't match. Get the cleaned file to your manager by 12/01 and you'll hit a home run before Thanksgiving.`,
+ a:`Before you analyze data, clean it. Data with errors leads to poor decisions, and those decisions are hard to undo later.
+
+Start with the simplest fix: remove duplicate rows. Then check for missing values. Your whole team should handle them the same way, so the numbers match. A key performance indicator (KPI) is only as good as the data behind it. Send the cleaned file to your manager by December 1.`},
+ {n:'Welcome',t:'Course welcome message',b:`Welcome aboard! We're stoked to have you join the Microsoft Marketing Manager program. Whether you're a seasoned pro or a total newbie, we'll hit the ground running in Module 1, and you'll be up to speed in no time. Live office hours are held every Tuesday at 7 PM EST, and recordings will be posted afterwards. Don't forget that your first assignment is due 12/08, so it's important that you don't fall behind!`,
+ a:`Welcome to the Microsoft Marketing Manager program. We're glad you're here. This program works for you whether you are new to marketing or already have experience.
+
+In Module 1, you learn the basics of a marketing plan. Live office hours run every Tuesday at 13:00 UTC. Check the course calendar to see the time in your city. If you can't attend, you can watch the recording later. Your first assignment is due December 8.`},
+ {n:'Video script',t:'Video script intro',b:`Hey folks, in this video we're going to knock it out of the park with your first campaign brief. Think of the marketing funnel like the Super Bowl: the ad is just the kickoff, and the real touchdown happens when leads convert. With a $50K budget, you'll need to leverage your CTAs and track ROI from day one so you can move the needle.`,
+ a:`In this video, you write your first campaign brief. A marketing funnel shows the steps a customer takes, from first seeing an ad to buying.
+
+The ad is only the first step. The real result comes when a possible customer becomes a paying one. Your budget is 50,000 US dollars (USD). Use a clear call to action (CTA) in every ad. Track your return on investment (ROI) from the first day.`},
+ {n:'Quiz question',t:'Graded quiz question',b:`Which of the following is not an example of a KPI that would not be utilized by a marketing manager when evaluating a campaign's performance across multiple channels during the Q4 push? Select all that apply.`,
+ a:`You are a marketing manager. You want to check how a campaign performs across several channels. Which of these key performance indicators (KPIs) would you use? Select all that apply.`},
+ {n:'Discussion',t:'Discussion prompt',b:`Think about a time when you dropped the ball on a project at work. What went south, and how did you get things back on track? Was it a learning experience that was taken to heart by your team? Share your two cents below and give a shout-out to a peer whose post resonates with you.`,
+ a:`Think about a time when a work project did not go as planned. What went wrong? What did you do to fix it? What did you and your team learn?
+
+Write your answer in 100 to 150 words. Then reply to one classmate and tell them what you found useful in their post.`},
+ {n:'Module summary',t:'Module summary (cohesion)',b:`Great work! In this module, you tracked ROI for three campaigns and compared CTR across email and social channels. You also saw how SEO drives organic traffic over time. Return on investment (ROI) tells you whether a campaign earned more than it cost. Click-through rate (CTR) shows how many people clicked after seeing your message. In the next module, you will use these numbers to build a simple report.`,
+ a:`Great work! In this module, you tracked the return on investment (ROI) for three campaigns. ROI tells you whether a campaign earned more than it cost. You also compared the click-through rate (CTR) across email and social channels. CTR shows how many people clicked after seeing your message. Finally, you saw how search engine optimization (SEO) brings in visitors from search results over time. In the next module, you will use these numbers to build a simple report.`},
+ {n:'Peer review',t:'Peer-review instructions',b:`Submissions will be evaluated by peers utilizing the rubric provided, and it is expected that all deliverables are uploaded no later than 11:59 PM PT on 12/15, as late submissions are not able to be accepted for grading purposes due to the nature of the peer review process. Learners who fail to review three peers' work will not be eligible to receive a grade.`,
+ a:`Upload your project by December 15 at 23:59 UTC. Your classmates grade it with the rubric on this page.
+
+Please submit on time. Late projects can't be graded, because classmates need time to review them. To get your own grade, you also need to review three classmates' projects.`}
+,
+ {n:'India',g:1,t:'Case study written for readers in India',b:`Your client is a mid-size retailer in Pune with a festive-season budget of ₹40 lakh. Diwali sales bring in nearly a third of their yearly revenue. Most customers pay by UPI, and many first find the brand on Flipkart. Kindly prepone your campaign plan to Friday, 10:00 IST, so the team can review it. Please do the needful and revert by email.`,a:`Your client is a mid-size retailer with a budget of 400,000 US dollars (USD) for its biggest sales season. That season brings in nearly a third of the client's yearly revenue. Most customers pay online, and many first find the brand through ads on large shopping sites. Send your campaign plan by Friday at 09:00 UTC so the team can review it.`},
+ {n:'United States',g:1,t:'Case study written for readers in the US',b:`Your client is a mid-size retailer in Ohio with a holiday budget of $400K. Black Friday through Christmas brings in nearly a third of their yearly revenue. Most customers pay by credit card, and many first find the brand through a Super Bowl ad. Get your campaign plan in by Friday at 10 AM ET so the team can review it before Thanksgiving.`,a:`Your client is a mid-size retailer with a budget of 400,000 US dollars (USD) for its biggest sales season. That season brings in nearly a third of the client's yearly revenue. Most customers pay online, and many first find the brand through ads on large shopping sites. Send your campaign plan by Friday at 09:00 UTC so the team can review it.`},
+ {n:'United Kingdom',g:1,t:'Case study written for readers in the UK',b:`Your client is a mid-size retailer in Leeds with a Christmas budget of £350,000. The weeks around Boxing Day bring in nearly a third of their yearly revenue. Most customers shop on their phones, and many first find the brand through a Tesco partnership. Please send your campaign plan by Friday at 10:00 GMT, a fortnight before the bank holiday, so the team can review it.`,a:`Your client is a mid-size retailer with a budget of 400,000 US dollars (USD) for its biggest sales season. That season brings in nearly a third of the client's yearly revenue. Most customers pay online, and many first find the brand through ads on large shopping sites. Send your campaign plan by Friday at 09:00 UTC so the team can review it.`},
+ {n:'France',g:1,t:'Case study written for readers in France',b:`Your client is a mid-size retailer in Lyon with a budget of €350,000 for its rentrée campaign. The back-to-school weeks in September bring in nearly a third of their yearly revenue. Many staff take RTT days in late summer, so plan for a smaller team. Please send your campaign plan by Friday at 10h00 CET so the team can review it. SNCF strike dates may also delay deliveries.`,a:`Your client is a mid-size retailer with a budget of 400,000 US dollars (USD) for its biggest sales season. That season brings in nearly a third of the client's yearly revenue. Most customers pay online, and many first find the brand through ads on large shopping sites. Send your campaign plan by Friday at 09:00 UTC so the team can review it.`}
+];
+let ex=0,ver='b';
+let cur=0;try{cur=+localStorage.getItem('alP')||0}catch(e){}
+try{const w=JSON.parse(localStorage.getItem('alW')||'null');if(Array.isArray(w)&&w.length===4)w.forEach((v,i)=>P[i].w=+v||0)}catch(e){}
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rx=(a,f)=>new RegExp('\\b('+a.slice().sort((x,y)=>y.length-x.length).map(s=>s.replace(/-/g,'\\-')).join('|')+')(?![\\w])',f);
+const RI=rx(IDIOMS,'gi'),RJ=rx(JARGON,'gi'),RL=LOCAL.map(l=>new RegExp(l.slice().sort((x,y)=>y.length-x.length).map(e=>e.startsWith('re:')?e.slice(3):'\\b'+e.replace(/-/g,'\\-')+'(?![\\w])').join('|'),'gi')),RD=/\b(\d{1,2})\/(\d{1,2})(?:\/\d{2,4})?\b/g,LOCACR=new Set(LOCAL.flat().filter(e=>/^[A-Z]{2,6}$/.test(e))),RP=/\b(is|are|was|were|be|been|being)\s+(?:\w+ly\s+)?(\w+(?:ed|en))\b/gi;
+function syl(w){w=w.toLowerCase().replace(/[^a-z]/g,'');if(w.length<=3)return 1;w=w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/,'').replace(/^y/,'');const m=w.match(/[aeiouy]{1,2}/g);return Math.max(1,m?m.length:1)}
+function sents(t){return (t.match(/[^.!?\n]+[.!?]*/g)||[]).map(s=>s.trim()).filter(s=>/\w/.test(s))}
+function words(s){return s.match(/[A-Za-z][A-Za-z'’-]*/g)||[]}
+
+function analyze(text){
+  const ss=sents(text),ws=words(text);
+  const sy=ws.reduce((a,w)=>a+syl(w),0);
+  const grade=ws.length&&ss.length?Math.max(0,.39*(ws.length/ss.length)+11.8*(sy/ws.length)-15.59):0;
+  const idioms=[...text.matchAll(RI)].map(m=>m[1].toLowerCase());
+  const dm=[...text.matchAll(RD)];
+  const dates=dm.filter(m=>+m[1]<=12).map(m=>m[0]),dayFirst=dm.filter(m=>+m[1]>12).map(m=>m[0]);
+  const jar=[...text.matchAll(RJ)].map(m=>m[1].toLowerCase());
+  const defined=new Set([...text.matchAll(/\(([A-Z]{2,6})s?\)/g)].map(m=>m[1]));
+  const late=[];
+  for(const d of [...text.matchAll(/\(([A-Z]{2,6})s?\)/g)]){const A=d[1];if(late.some(x=>x.a===A))continue;
+    const uses=[...text.matchAll(new RegExp('(?<!\\()\\b'+A+'s?\\b','g'))].filter(u=>u.index<d.index);
+    if(uses.length)late.push({a:A,n:uses.length,def:d.index})}
+  const loc=RL.map(r=>[...text.matchAll(r)].map(m=>m[0]).filter(m=>!defined.has(m.toUpperCase())));
+  const acr=[...new Set((text.match(/\b[A-Z]{2,6}s?\b/g)||[]).map(a=>a.replace(/s$/,'')))].filter(a=>!defined.has(a)&&!LOCACR.has(a)&&!['I','OK','US','UK','SAT','AM','PM','UTC','EST','PST','EDT','PDT','CST','CDT','PT','ET'].includes(a));
+  const low=text.toLowerCase();
+  const usSp=SPELL.filter(([u])=>new RegExp('\\b'+u+'(s|ed|ing|d)?\\b').test(low)).length,ukSp=SPELL.filter(([,k])=>new RegExp('\\b'+k+'(s|ed|ing|d)?\\b').test(low)).length;
+  const pas=[...text.matchAll(RP)].length;
+  const neg=ss.filter(x=>(x.match(/\b(not|no|never|none|neither|nor)\b|n't\b/gi)||[]).length>=2).length;
+  const you=(text.match(/\byou(r|rs|'re|'ll)?\b/gi)||[]).length;
+  return {late,defined,loc,dates,dayFirst,neg,ss,ws:ws.length,grade,idioms,jar,acr,pas,you,usSp,ukSp,avg:ss.length?ws.length/ss.length:0};
+}
+function outside(a,p){return a.loc.flatMap((l,r)=>r===p.i?[]:l)}
+function fit(a,p){
+  if(!a.ws)return 0;
+  let s=100;
+  s-=Math.min(20,Math.max(0,a.grade-p.grade)*6);
+  s-=Math.min(18,a.ss.filter(x=>words(x).length>p.maxS).length*6);
+  s-=Math.min(20,a.idioms.length*3*p.idiom);
+  s-=Math.min(30,outside(a,p).length*3*p.out);
+  s-=Math.min(8,(p.i===1?a.dayFirst.length:a.dates.length)*6*p.date);
+  s-=Math.min(12,a.jar.length*1.5*p.jar);
+  s-=Math.min(12,(a.acr.length+a.late.length)*2.5*p.acr);
+  if(a.usSp&&a.ukSp)s-=4;
+  s-=Math.min(12,a.neg*8*p.acr);
+  if(a.ss.length&&a.pas/a.ss.length>.2)s-=8;
+  if(!a.you)s-=6;
+  return Math.round(Math.max(0,Math.min(100,s)));
+}
+function ring(v,c,R,cls,sub){const r=R,C=2*Math.PI*r,S=2*r+16,m=S/2;return `<svg class="${cls}" viewBox="0 0 ${S} ${S}" aria-hidden="true"><circle cx="${m}" cy="${m}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${R/4}"/><circle class="v" cx="${m}" cy="${m}" r="${r}" fill="none" stroke="${c}" stroke-width="${R/4}" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-v/100)}" transform="rotate(-90 ${m} ${m})"/><text x="${m}" y="${m+(sub?6:8)}" text-anchor="middle">${v}</text>${sub?`<text class="s" x="${m}" y="${m+26}" text-anchor="middle">${sub}</text>`:''}</svg>`}
+function markup(text,p,acr,defined,late){
+  const lim={};acr.forEach(x=>lim[x]=1e9);late.forEach(x=>lim[x.a]=x.n);const seen={};
+  const keys=Object.keys(lim),acrRx=keys.length?new RegExp('(?<!\\()\\b('+keys.join('|')+')s?\\b','g'):null;
+  return text.split(/\n\s*\n/).filter(x=>x.trim()).map(par=>'<p>'+(par.match(/[^.!?]+[.!?]*\s*/g)||[par]).map(s=>{
+    let h=esc(s);
+    h=h.replace(RI,'<mark class="m-idiom" data-k="idiom" tabindex="0" role="button">$1</mark>').replace(RJ,'<mark class="m-jar" data-k="jar" tabindex="0" role="button">$1</mark>');
+    RL.forEach((r,ri)=>{if(ri!==p.i)h=h.replace(r,m=>defined.has(m.toUpperCase())?m:`<mark class="m-us" data-k="loc" data-r="${ri}" tabindex="0" role="button" title="Local to ${REG[ri]}">${m}</mark>`)});
+    h=h.replace(RD,(m,d)=>(p.i===1?+d>12:+d<=12)?`<mark class="m-us" data-k="date" tabindex="0" role="button" title="Date order differs by country">${m}</mark>`:m);
+    if(acrRx)h=h.replace(acrRx,(m,b)=>{seen[b]=(seen[b]||0)+1;return seen[b]<=lim[b]?`<mark class="m-acr" data-k="acr" tabindex="0" role="button" title="Cohesion">${m}</mark>`:m});
+    h=h.replace(RP,m=>`<mark class="m-pas" data-k="pas" tabindex="0" role="button">${m}</mark>`);
+    return words(s).length>p.maxS?`<mark class="m-long" data-k="long" tabindex="0" role="button">${h}</mark>`:h}).join('')+'</p>').join('');
+}
+function fixes(a,p){
+  const f=[];
+  const long=a.ss.filter(x=>words(x).length>p.maxS);
+  if(a.grade>p.grade)f.push(`Reading level is grade ${a.grade.toFixed(1)}; aim for ${p.grade} or below for this lens. Shorter sentences and everyday words bring it down fastest.`);
+  if(long.length)f.push(`${long.length} sentence${long.length>1?'s run':' runs'} past ${p.maxS} words. Split each one at its "which", "and" or comma.`);
+  if(a.idioms.length&&p.idiom>.5)f.push(`Replace idioms (${[...new Set(a.idioms)].join(', ')}) with literal words. They often don't survive translation.`);
+  const oth=a.loc.map((l,r)=>r!==p.i&&l.length?`${[...new Set(l)].join(', ')} (${REG[r]})`:'').filter(Boolean);
+  if(oth.length)f.push(`This reader may not know references from other countries: ${oth.join('; ')}. Explain them, or swap in an example that works anywhere.`);
+  const bd=p.i===1?a.dayFirst:a.dates;
+  if(bd.length)f.push(`Write dates out: ${bd[0]} can be read as a different day here. Use "1 December" or "December 1".`);
+  if(a.acr.length)f.push(`Cohesion: ${a.acr.join(', ')} ${a.acr.length>1?'are':'is'} never explained. Spell ${a.acr.length>1?'each':'it'} out at first use, like "key performance indicator (KPI)".`);
+  if(a.late.length)f.push(`Cohesion: ${a.late.map(x=>x.a).join(', ')} ${a.late.length>1?'are':'is'} used before ${a.late.length>1?'they are':'it is'} explained. Move the definition up to the first mention.`);
+  if(a.jar.length)f.push(`Swap jargon (${[...new Set(a.jar)].join(', ')}) for plain words: "use" for "utilize", "clean" for "cleanse".`);
+  if(a.neg)f.push(`${a.neg} sentence${a.neg>1?'s have':' has'} two negatives ("not ... not"). Rewrite it positively; double negatives are hard to parse in a second language and in quiz questions.`);
+  if(a.usSp&&a.ukSp)f.push('US and UK spellings are mixed. Pick the variant your style guide sets and use it throughout.');
+  if(a.ss.length&&a.pas/a.ss.length>.2)f.push(`${a.pas} passive constructions hide who does the work. Name the actor: "each team handled missing values differently".`);
+  if(!a.you&&a.ws)f.push('The text never says "you". Talk to the learner directly.');
+  return f.length?f:['Nothing major for this lens. Read it aloud once as a final check.'];
+}
+
+const FIX={'deep dive':'move','touch base':'focus','low-hanging fruit':'easiest fix','at the end of the day':'in the end','circle back':'come back','move the needle':'make a real difference','on the same page':'in agreement','hit the ground running':'start right away','game changer':'major improvement','game-changer':'major improvement','piece of cake':'easy','bottom line':'main point','in a nutshell':'in short','think outside the box':'try new ideas','under the hood':'inside','rule of thumb':'general rule','nail down':'confirm','get the hang of':'learn','ramp up':'increase','boil the ocean':'try to do everything at once','drill down':'look in detail','course-correct':'fix','single source of truth':'trusted dataset','heavy lifting':'hardest work','in the weeds':'deep in the details','tip of the iceberg':'a small part of the problem','apples to apples':'a fair comparison','up to speed':'comfortable with the basics','welcome aboard':'welcome','stoked':'glad','seasoned pro':'experienced professional','newbie':'beginner','in no time':'quickly','dropped the ball':'made a mistake','drop the ball':'make a mistake','went south':'went wrong','back on track':'working again','two cents':'opinion','shout-out':'thank-you','shout out':'thank-you','taken to heart':'remembered',
+'leverage':'use','leveraging':'using','leveraged':'used','utilize':'use','utilized':'used','utilizing':'using','synergy':'teamwork','operationalize':'put into practice','operationalized':'put into practice','paradigm':'model','holistic':'complete','actionable':'practical','bandwidth':'time','ecosystem':'set of tools','robust':'reliable','granular':'detailed','suboptimal':'poor','data hygiene':'data quality','cleansed':'cleaned','best-in-class':'leading','stakeholders':'decision-makers','value-add':'benefit','scalable':'able to grow','streamline':'simplify','incentivize':'encourage',
+'home run':'big success','ballpark':'rough','touchdown':'win','slam dunk':'easy win','curveball':'surprise','curve ball':'surprise','step up to the plate':'take responsibility','out of left field':'unexpected','full-court press':'all-out effort','hail mary':'last attempt','super bowl':'major televised sports event','thanksgiving':'the holiday break','fourth of july':'a national holiday','zip code':'postal code','fahrenheit':'Celsius (convert the number too)','black friday':'the biggest sales weekend','dime a dozen':'very common','q4 push':'year-end sales','knock it out of the park':'do excellent work','kickoff':'start',
+'do the needful':'complete this task','prepone':'move earlier','preponed':'moved earlier','revert back':'reply','kindly revert':'please reply','revert by':'reply by','diwali':'the festive season','onam':'the festive season','flipkart':'a large online store','paytm':'a mobile payment app',
+'fortnight':'two weeks','chuffed':'pleased','knackered':'very tired','sorted':'solved','boxing day':'the day after Christmas','bank holiday':'public holiday','a-levels':'final school exams','tesco':'a large supermarket chain','whilst':'while',
+'rentrée':'back-to-school season','bpifrance':'a public investment bank'};
+const ACR={KPI:'key performance indicator',ROI:'return on investment',CTA:'call to action',ETL:'extract, transform, load',QA:'quality assurance',UPI:'Unified Payments Interface',RTT:'reduced-working-time',SNCF:'France\'s national railway',NHS:'the UK\'s National Health Service',HMRC:'the UK tax authority',URSSAF:'France\'s social security office',SEO:'search engine optimization',CTR:'click-through rate',KPIs:'key performance indicators',CRM:'customer relationship management',API:'application programming interface',SQL:'Structured Query Language',AI:'artificial intelligence'};
+const ZONE={EST:-5,EDT:-4,CST:-6,CDT:-5,PST:-8,PDT:-7,ET:-5,PT:-8,CT:-6,IST:5.5,GMT:0,BST:1,CET:1,CEST:2};
+const CUR={'$':'US dollars (USD)','£':'British pounds (GBP)','€':'euros (EUR)','₹':'Indian rupees (INR)'};
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const reEsc=x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+function nth(text,m,k){const w1=/^\w/.test(m),w2=/\w$/.test(m);const r=new RegExp((w1?'(?<![\\w])':'')+reEsc(m)+(w2?'(?![\\w])':''),'gi');let x,i=0;while((x=r.exec(text))){if(i++===k)return x.index}return -1}
+const cap=(o,r)=>/^[A-Z]/.test(o)&&!/^[A-Z]{2}/.test(o)?r[0].toUpperCase()+r.slice(1):r;
+const num=n=>n.toLocaleString('en-US',{maximumFractionDigits:2});
+function suggest(kind,m,text,idx){
+  const one=(rep,label)=>({s:idx,e:idx+m.length,rep,label:label||`Change to "${rep}"`});
+  const key=m.toLowerCase();
+  if(kind==='long')return {h:'Long sentence',p:'Split it into two or three sentences. Good places to cut: before "which", at "and", or at a comma. This one needs a human, so there\'s no one-click fix.',f:[]};
+  if(kind==='pas')return {h:'Passive voice',p:'Say who does the action: "the team handled missing values" instead of "missing values were handled". It needs your judgement about who the actor is.',f:[]};
+  if(kind==='acr'){const b=m.replace(/s$/,''),pl=m.length>b.length;
+    const d=text.match(new RegExp('\\(('+b+')s?\\)'));
+    if(d&&d.index>idx){
+      const pre=text.slice(0,d.index).replace(/\s+$/,'');const ws=pre.split(/\s+/);let ex=ACR[b];
+      if(!ex||!pre.toLowerCase().endsWith(ex.toLowerCase().replace(/s$/,''))&&!pre.toLowerCase().endsWith(ex.toLowerCase()+'s')){const out=[];let n=0;for(let w=ws.length-1;w>=0&&n<b.length;w--){if(/[.!?:;]$/.test(ws[w]))break;out.unshift(ws[w]);n+=ws[w].split('-').filter(Boolean).length}ex=out.join(' ').replace(/^[,("']+/,'')}
+      const plainEx=/\s[A-Z]/.test(ex)?ex:ex.replace(/^[A-Z](?=[a-z])/,c=>c.toLowerCase());
+      return {h:'Cohesion',p:`"${b}" is used here but explained later. Readers meet the short form before they know what it means. Move the definition up to this first mention.`,
+        f:[{edits:[{s:d.index-(text.slice(0,d.index).length-text.slice(0,d.index).replace(/\s+$/,'').length),e:d.index+d[0].length,rep:''},{s:idx,e:idx+m.length,rep:`${plainEx}${pl&&!/s$/.test(plainEx)?'s':''} (${m})`}],label:`Define it here: "${plainEx} (${m})"`}]}}
+    const ex=ACR[b];return ex?{h:'Cohesion',p:'This term is never explained. Spell it out the first time it appears, then use the short form.',f:[one(`${ex}${pl?'s':''} (${m})`)]}:{h:'Cohesion',p:`"${m}" is never explained. Spell it out the first time it appears, like "key performance indicator (KPI)".`,f:[]}}
+  if(kind==='date'){const d=m.split('/').map(Number),us=d[0]<=12&&kind;const mo=us?d[0]:d[1],dy=us?d[1]:d[0],yr=d[2]?`, ${d[2]<100?2000+d[2]:d[2]}`:'';if(mo<1||mo>12)return {h:'Ambiguous date',p:'Write the month as a word.',f:[]};
+    return {h:'Ambiguous date',p:`Readers in different countries read ${m} as different days. Writing the month as a word removes the doubt.`,f:[one(`${MON[mo-1]} ${dy}${yr}`),one(`${dy} ${MON[mo-1]}${yr.replace(',','')}`)]}}
+  if(kind==='loc'){
+    const z=ZONE[m.toUpperCase()];
+    if(z!==undefined){const back=text.slice(Math.max(0,idx-14),idx).match(/(\d{1,2})(?:[:h](\d{2}))?\s*(AM|PM|am|pm)?\s*$/);
+      if(back){let h=+back[1],mi=+(back[2]||0);const ap=(back[3]||'').toUpperCase();if(ap==='PM'&&h<12)h+=12;if(ap==='AM'&&h===12)h=0;let t=h*60+mi-z*60,day='';if(t<0){t+=1440;day=' The UTC time falls on the previous day, so check the date too.'}if(t>=1440){t-=1440;day=' The UTC time falls on the next day, so check the date too.'}
+        const r=`${String(Math.floor(t/60)).padStart(2,'0')}:${String(t%60).padStart(2,'0')} UTC`;return {h:'Local time zone',p:'Learners are spread across time zones. Give one shared reference time and let the course calendar convert it.'+day,f:[{s:idx-back[0].length,e:idx+m.length,rep:r,label:`Change "${back[0].trim()} ${m}" to "${r}"`}]}}
+      return {h:'Local time zone',p:'Give the time in UTC so learners anywhere can convert it.',f:[one('UTC')]}}
+    const c=m[0];
+    if(CUR[c]){let n=parseFloat(m.slice(1).replace(/[^\d.]/g,''));if(/k$/i.test(m))n*=1e3;if(/m$/i.test(m))n*=1e6;let e=idx+m.length;const after=text.slice(e).match(/^\s*(lakhs?|crores?)\b/i);if(after){n*=/lakh/i.test(after[1])?1e5:1e7;e+=after[0].length}
+      const r=`${num(n)} ${CUR[c]}`;return {h:'Local currency',p:'Name the currency in words with its code, and write the full number.',f:[{s:idx,e,rep:r,label:`Change to "${r}"`}]}}
+    if(/^(lakhs?|crores?)$/i.test(m)){const back=text.slice(Math.max(0,idx-16),idx).match(/(₹\s?)?(\d[\d,.]*)\s*$/);const mult=/lakh/i.test(m)?1e5:1e7;
+      if(back){const n=parseFloat(back[2].replace(/,/g,''))*mult;const r=`${num(n)}${back[1]?' Indian rupees (INR)':''}`;return {h:'Indian numbering',p:'1 lakh is 100,000 and 1 crore is 10 million. Readers outside South Asia may not know these.',f:[{s:idx-back[0].length,e:idx+m.length,rep:r,label:`Change to "${r}"`}]}}
+      return {h:'Indian numbering',p:'1 lakh is 100,000 and 1 crore is 10 million. Write the full number.',f:[]}}
+    if(/^\d{1,2}h\d{2}$/.test(m))return {h:'Time format',p:'Use a colon for times.',f:[one(m.replace('h',':'))]};
+    if(ACR[m.toUpperCase()])return {h:'Local reference',p:'Readers outside this country may not know it. Spell it out or swap it.',f:[one(`${ACR[m.toUpperCase()]} (${m})`)]};
+    const r=FIX[key];return {h:'Local reference',p:'Readers in other countries may not know this. Explain it, or use an example that works anywhere.',f:r?[one(cap(m,r))]:[]};
+  }
+  const r=FIX[key];
+  return {h:kind==='idiom'?'Idiom':'Jargon',p:kind==='idiom'?'Idioms often don\'t survive translation. Say it literally.':'Plain words are faster to read, for everyone.',f:r?[one(cap(m,r))]:[]};
+}
+function markInfo(mk){
+  const kind=mk.dataset.k,m=mk.textContent,text=$('ed').value;
+  const same=[...$('read').querySelectorAll(`mark[data-k="${kind}"]`)].filter(x=>x.textContent.toLowerCase()===m.toLowerCase());
+  const idx=nth(text,m,same.indexOf(mk));
+  return {kind,m,idx,sug:idx<0?{h:'',p:'',f:[]}:suggest(kind,m,text,idx)};
+}
+let undoStack=[];
+function edit(t,f){return (f.edits||[f]).slice().sort((x,y)=>y.s-x.s).reduce((v,e)=>v.slice(0,e.s)+e.rep+v.slice(e.e),t)}
+function applyFix(f){const t=$('ed').value;undoStack.push(t);$('ed').value=edit(t,f);render()}
+function say(msg){$('toast').innerHTML=esc(msg)+(undoStack.length?' <button class="undo" id="undo">Undo</button>':'');clearTimeout(say.t);say.t=setTimeout(()=>$('toast').textContent='',6000)}
+function closePop(){const p=$('pop');if(p)p.remove()}
+function openPop(mk){
+  closePop();const info=markInfo(mk);if(!info.sug.h)return;
+  const read=$('read'),pop=document.createElement('div');pop.className='pop';pop.id='pop';pop.setAttribute('role','dialog');pop.setAttribute('aria-label',info.sug.h);
+  pop.innerHTML=`<button class="x" aria-label="Close">×</button><h3>${esc(info.sug.h)}: "${esc(info.m.length>40?info.m.slice(0,40)+'…':info.m)}"</h3><p>${esc(info.sug.p)}</p>${info.sug.f.map((f,j)=>`<button class="fx" data-j="${j}">${esc(f.label)}</button>`).join('')}`;
+  read.appendChild(pop);
+  const top=mk.offsetTop+mk.offsetHeight+6,left=Math.max(8,Math.min(mk.offsetLeft,read.clientWidth-pop.offsetWidth-8));
+  pop.style.top=top+'px';pop.style.left=left+'px';
+  pop.addEventListener('click',e=>{e.stopPropagation();if(e.target.closest('.x')){closePop();mk.focus();return}const b=e.target.closest('.fx');if(!b)return;const f=info.sug.f[+b.dataset.j];applyFix(f);say(f.edits?'Definition moved to the first mention.':`Changed to "${f.rep}".`)});
+  (pop.querySelector('.fx')||pop.querySelector('.x')).focus();
+}
+function weighted(a){const t=P.reduce((s,p)=>s+p.w,0);return t?Math.round(P.reduce((s,p)=>s+p.w*fit(a,p),0)/t):0}
+function renderMix(a){
+  const t=P.reduce((s,p)=>s+p.w,0)||1;
+  $('bigRing').innerHTML=ring(weighted(a),'var(--ink)',60,'big','weighted fit');
+  $('bar').innerHTML=P.map((p,i)=>`<span style="width:${p.w/t*100}%;background:${COL[i]}"></span>`).join('');
+}
+function render(){
+  closePop();
+  const text=$('ed').value,a=analyze(text),p=P[cur];
+  document.documentElement.style.setProperty('--pc',COL[cur]);
+  renderMix(a);
+  const t=P.reduce((s,x)=>s+x.w,0)||1;
+  $('lenses').innerHTML=P.map((x,i)=>`<li><button class="lens" style="--pc:${COL[i]}" data-i="${i}" aria-pressed="${i===cur}"><span class="lt">${ring(fit(a,x),COL[i],27,'ring')}<span><b>${x.r}</b><em>${Math.round(x.w/t*100)}% of learners</em></span></span><span>${x.d}</span></button></li>`).join('');
+  const nIss=a.idioms.length+outside(a,p).length+a.jar.length+a.acr.length+a.late.length;
+  const st=[[a.grade.toFixed(1),`Reading grade (target ${p.grade})`,a.grade>p.grade],[a.avg.toFixed(0),`Words per sentence (max ${p.maxS})`,a.avg>p.maxS],[nIss,'Idioms, local refs, jargon, cohesion',nIss>0],[`${Math.max(1,Math.round(a.ws/(p.i===1||p.i===2?230:170)))} min`,'Reading time for this lens',false]];
+  $('stats').innerHTML=st.map(([v,l,o])=>`<div class="stat${o&&a.ws?' over':''}"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('readTitle').textContent=`Through the ${p.r} lens`;
+  $('read').innerHTML=a.ws?markup(text,p,a.acr,a.defined,a.late):'<p style="color:var(--mute)">Paste some course text on the left.</p>';
+  $('who').innerHTML=`<h2>${esc(p.n)}</h2><p>${esc(p.d)}</p><p><b>What tends to help:</b> ${esc(p.needs)}</p>`;
+  $('fixList').innerHTML=fixes(a,p).map(f=>`<li>${esc(f)}</li>`).join('');
+  try{localStorage.setItem('alText3',text);localStorage.setItem('alP',cur)}catch(e){}
+}
+$('wts').innerHTML=P.map((p,i)=>`<div><label for="w${i}">${p.r} %</label><input id="w${i}" type="number" min="0" max="100" inputmode="numeric" value="${p.w}" data-i="${i}"></div>`).join('');
+$('wts').addEventListener('input',e=>{const i=e.target.dataset.i;if(i==null)return;P[+i].w=Math.max(0,+e.target.value||0);try{localStorage.setItem('alW',JSON.stringify(P.map(p=>p.w)))}catch(x){}render()});
+$('lenses').addEventListener('click',e=>{const b=e.target.closest('.lens');if(!b)return;cur=+b.dataset.i;render();const n=$('lenses').querySelector(`[data-i="${cur}"]`);n&&n.focus()});
+$('read').addEventListener('click',e=>{const mk=e.target.closest('mark[data-k]');if(mk)openPop(mk)});
+$('read').addEventListener('keydown',e=>{const mk=e.target.closest('mark[data-k]');if(mk&&(e.key==='Enter'||e.key===' ')){e.preventDefault();openPop(mk)}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePop()});
+document.addEventListener('click',e=>{if(!e.target.closest('#pop')&&!e.target.closest('mark[data-k]'))closePop()});
+$('toast').addEventListener('click',e=>{if(e.target.id==='undo'&&undoStack.length){$('ed').value=undoStack.pop();render();say('Undone.')}});
+$('quick').addEventListener('click',()=>{
+  const start=$('ed').value;let n=0;
+  for(let g=0;g<60;g++){const mk=[...$('read').querySelectorAll('mark[data-k]')].find(x=>{const i=markInfo(x);return i.sug.f&&i.sug.f.length});if(!mk)break;const f=markInfo(mk).sug.f[0];$('ed').value=edit($('ed').value,f);render();n++}
+  if(n){undoStack.push(start);say(`Applied ${n} quick fix${n>1?'es':''}. Long sentences and passive voice still need a human.`)}else say('No quick fixes left for this lens.');
+});
+let tm;$('ed').addEventListener('input',()=>{clearTimeout(tm);tm=setTimeout(render,250)});
+function exBtns(){const ch=g=>EX.map((e,k)=>!!e.g===g?`<button class="ex" data-k="${k}" aria-pressed="${k===ex}" title="${e.t}">${e.n}</button>`:'').join('');
+  $('exs').innerHTML=`<span class="exg">Content types</span>${ch(false)}<span class="exg">Same case study, written for one home audience (After = global version)</span>${ch(true)}`;$('vb').setAttribute('aria-pressed',ver==='b');$('va').setAttribute('aria-pressed',ver==='a')}
+function loadEx(){$('ed').value=EX[ex][ver];exBtns();render();try{localStorage.setItem('alEx',ex+ver)}catch(e){}}
+$('exs').addEventListener('click',e=>{const b=e.target.closest('.ex');if(!b)return;ex=+b.dataset.k;ver='b';loadEx();$('exs').querySelector(`[data-k="${ex}"]`).focus()});
+$('vb').addEventListener('click',()=>{ver='b';loadEx()});
+$('va').addEventListener('click',()=>{ver='a';loadEx()});
+$('clear').addEventListener('click',()=>{$('ed').value='';render();$('ed').focus()});
+$('copy').addEventListener('click',async()=>{
+  const a=analyze($('ed').value),t=P.reduce((s,p)=>s+p.w,0)||1;
+  const txt=`Weighted audience fit: ${weighted(a)}/100\n\n`+P.map(p=>`${p.r} (${Math.round(p.w/t*100)}% of learners): fit ${fit(a,p)}/100\n- `+fixes(a,p).join('\n- ')).join('\n\n');
+  try{await navigator.clipboard.writeText(txt);$('toast').textContent='Copied'}catch(e){$('toast').textContent='Copy was blocked'}
+  setTimeout(()=>$('toast').textContent='',2500);
+});
+let saved=null;try{saved=localStorage.getItem('alText3');const k=localStorage.getItem('alEx');if(k){ex=Math.min(EX.length-1,parseInt(k)||0);ver=k.slice(-1)==='a'?'a':'b'}}catch(e){}
+$('ed').value=saved&&saved.trim()?saved:EX[ex][ver];
+exBtns();render();
+}
+</script>
+</body>
+</html>
